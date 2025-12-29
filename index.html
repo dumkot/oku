@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mikrotik Tools - Dashboard Admin</title>
+    <!-- Tailwind CSS CDN untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Bootstrap CSS CDN untuk komponen list -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Font Awesome untuk ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', Verdana, sans-serif;
+            text-align: center;
+            margin: 0; /* Reset margin default */
+            background-color: #f0f0f0;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Styling tambahan untuk menu mobile */
+        #mobile-sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .nav-text {
+            white-space: nowrap;
+        }
+
+        /* Tooltip custom */
+        .tool {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltiptext {
+            visibility: hidden;
+            width: 320px;
+            background-color: black;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            right: 30%;
+            top: 100%;
+            position: absolute;
+            z-index: 1;
+        }
+
+        .tool:hover .tooltiptext {
+            visibility: visible;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300 pt-20">
+
+    <!-- Navbar Desktop -->
+    <header class="bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center fixed top-0 left-0 w-full z-10">
+        <div class="flex items-center space-x-4">
+            <!-- Logo & Judul -->
+            <a href="#" class="flex items-center space-x-2">
+                <img src="https://placehold.co/40x40/000000/FFFFFF?text=MT" alt="Logo MT" class="rounded-full">
+                <span class="text-xl font-bold text-gray-900 dark:text-gray-100">Mikrotik Tools</span>
+            </a>
+        </div>
+        <!-- Menu Navigasi Desktop -->
+        <nav class="hidden lg:flex items-center space-x-6" id="desktop-nav">
+            <!-- Item menu akan di-render via JavaScript -->
+        </nav>
+
+        <!-- Tombol Login -->
+        <div class="flex items-center space-x-4">
+            <button id="login-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                Masuk
+            </button>
+        </div>
+
+        <!-- Tombol Menu Mobile -->
+        <div class="lg:hidden flex items-center">
+             <button id="mobile-menu-button" class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Sidebar Menu Mobile -->
+    <div id="mobile-sidebar" class="fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-800 shadow-xl z-20 transform -translate-x-full lg:hidden">
+        <div class="p-4 flex flex-col h-full">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Menu</h2>
+                <button id="close-mobile-menu" class="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <!-- Container item menu mobile -->
+            <nav id="mobile-nav" class="flex flex-col space-y-4">
+                 <!-- Item menu akan di-render via JavaScript -->
+            </nav>
+        </div>
+    </div>
+
+    <!-- Area Konten Utama -->
+    <main id="section-container" class="container mx-auto px-4 py-8">
+        <!-- Konten Dinamis akan dimuat di sini -->
+    </main>
+
+    <!-- Modal Login -->
+    <div id="login-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden flex items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md relative">
+            <button id="close-login-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                <i class="fas fa-times"></i>
+            </button>
+            <h2 class="text-2xl font-bold mb-4 text-center">Masuk</h2>
+            <form id="login-form">
+                <div class="mb-4">
+                    <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="username">
+                        Nama Pengguna
+                    </label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:border-gray-600 dark:text-white" id="username" type="text" placeholder="Masukkan nama pengguna">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="password">
+                        Kata Sandi
+                    </label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:border-gray-600 dark:text-white" id="password" type="password" placeholder="Masukkan kata sandi">
+                    <p class="text-red-500 text-xs italic hidden" id="login-error"></p>
+                </div>
+                <div class="flex items-center justify-between">
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full" type="submit">
+                        Masuk
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Info/Link (Footer) -->
+    <div id="link-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden flex items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md relative max-h-[90vh] overflow-y-auto">
+             <button id="close-link-modal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                <i class="fas fa-times"></i>
+            </button>
+            <h2 id="link-modal-title" class="text-2xl font-bold mb-4"></h2>
+            <div id="link-modal-content" class="text-gray-700 dark:text-gray-300 text-sm space-y-4">
+                <!-- Konten modal footer -->
+            </div>
+             <div class="mt-6 text-center">
+                <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="document.getElementById('link-modal-overlay').classList.add('hidden')">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Kotak Pesan Global -->
+     <div id="message-box" class="fixed top-20 right-4 bg-white dark:bg-gray-800 border-l-4 p-4 rounded shadow-md hidden z-40" role="alert">
+        <p class="font-bold message-title"></p>
+        <p class="message-content"></p>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-gray-800 shadow-md mt-8 py-6">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500 dark:text-gray-400">
+            <div class="mb-4 md:mb-0">
+                &copy; 2025 Mikrotik Tools. Hak cipta dilindungi.
+            </div>
+            <div class="flex space-x-4">
+                <a href="#" id="privacy-link" class="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Kebijakan Privasi</a>
+                <a href="#" id="terms-link" class="hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Syarat Layanan</a>
+            </div>
+        </div>
+        <div class="text-center mt-2 text-xs text-gray-400">
+             Dikembangkan oleh Tim IT Kecamatan
+        </div>
+    </footer>
+
+    <script>
+        // --- Variabel Global ---
+        let currentSection = 'Beranda';
+        let isAuthenticated = false;
+        let currentUser = null;
+        let inactivityTimer;
+        let appConfig = null;
+
+        const INACTIVITY_TIMEOUT_MINUTES = 5;
+
+        // --- Fungsi Load Config ---
+        const loadConfig = async () => {
+            try {
+                // Di sini mencoba load config.json. Jika gagal, pakai default user admin/admin untuk demo.
+                const response = await fetch('config.json');
+                if (!response.ok) throw new Error('Gagal load config');
+                appConfig = await response.json();
+            } catch (error) {
+                console.warn('Config tidak ditemukan, menggunakan default demo user.');
+                appConfig = {
+                    users: [
+                        { username: 'admin', password: 'password', role: 'admin' },
+                        { username: 'camat', password: '123', role: 'user' }
+                    ]
+                };
+                // Tampilkan pesan error jika perlu, tapi kita bypass biar bisa dipakai demo
+                // showMessage('Info', 'Menggunakan mode demo (Default user: admin/password)', 'blue-500');
+            }
+        };
+
+        // --- Definisi Menu (Bahasa Indonesia) ---
+        const menuSections = [
+            { name: 'Beranda', id: 'home', icon: 'fa-home' },
+            { name: 'Alat', id: 'tools', icon: 'fa-tools' },
+            { name: 'Tentang', id: 'about', icon: 'fa-info-circle' },
+            { name: 'Kontak', id: 'contact', icon: 'fa-envelope' }
+        ];
+
+        // --- Render Navigasi ---
+        const renderNav = () => {
+            const desktopNav = document.getElementById('desktop-nav');
+            const mobileNav = document.getElementById('mobile-nav');
+
+            desktopNav.innerHTML = '';
+            mobileNav.innerHTML = '';
+
+            menuSections.forEach(section => {
+                // Versi Desktop
+                const desktopLink = document.createElement('a');
+                desktopLink.href = `#${section.id}`;
+                desktopLink.className = `text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white font-medium transition-colors ${currentSection === section.name ? 'text-blue-600 dark:text-blue-400' : ''}`;
+                desktopLink.innerHTML = `<i class="fas ${section.icon} mr-1"></i> ${section.name}`;
+                desktopLink.onclick = (e) => {
+                    e.preventDefault();
+                    navigateTo(section.name);
+                };
+                desktopNav.appendChild(desktopLink);
+
+                // Versi Mobile
+                const mobileLink = document.createElement('a');
+                mobileLink.href = `#${section.id}`;
+                mobileLink.className = `block px-4 py-2 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 rounded-md nav-text ${currentSection === section.name ? 'bg-gray-100 dark:bg-gray-700 font-bold' : ''}`;
+                mobileLink.innerHTML = `<i class="fas ${section.icon} mr-2"></i> ${section.name}`;
+                mobileLink.onclick = (e) => {
+                    e.preventDefault();
+                    navigateTo(section.name);
+                    toggleMobileMenu();
+                };
+                mobileNav.appendChild(mobileLink);
+            });
+        };
+
+        // --- Render Konten Utama ---
+        const renderContent = () => {
+            const container = document.getElementById('section-container');
+            container.innerHTML = '';
+
+            switch (currentSection) {
+                case 'Beranda':
+                    container.innerHTML = `
+                        <div class="text-center py-12">
+                            <h2 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 sm:text-4xl">
+                                Selamat Datang di Mikrotik Tools
+                            </h2>
+                            <p class="mt-4 text-lg text-gray-500 dark:text-gray-300">
+                                Solusi lengkap untuk manajemen jaringan Kecamatan Anda.
+                            </p>
+                            <div class="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                <!-- Card 1 -->
+                                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer border-t-4 border-blue-500" onclick="navigateTo('Alat')">
+                                    <div class="text-blue-500 mb-4"><i class="fas fa-network-wired fa-3x"></i></div>
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Alat Konfigurasi</h3>
+                                    <p class="mt-2 text-base text-gray-500 dark:text-gray-300">
+                                        Konfigurasi perangkat Mikrotik dengan mudah dan cepat.
+                                    </p>
+                                </div>
+                                <!-- Card 2 -->
+                                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer border-t-4 border-green-500" onclick="navigateTo('Alat')">
+                                    <div class="text-green-500 mb-4"><i class="fab fa-telegram fa-3x"></i></div>
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Integrasi Telegram</h3>
+                                    <p class="mt-2 text-base text-gray-500 dark:text-gray-300">
+                                        Bot notifikasi status jaringan langsung ke Telegram.
+                                    </p>
+                                </div>
+                                <!-- Card 3 -->
+                                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow cursor-pointer border-t-4 border-purple-500" onclick="navigateTo('Kontak')">
+                                    <div class="text-purple-500 mb-4"><i class="fas fa-headset fa-3x"></i></div>
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">Dukungan Teknis</h3>
+                                    <p class="mt-2 text-base text-gray-500 dark:text-gray-300">
+                                        Hubungi tim IT untuk kendala teknis.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    break;
+
+                case 'Alat':
+                    if (!isAuthenticated) {
+                        renderAccessDenied();
+                    } else {
+                        container.innerHTML = `
+                             <div class="py-8">
+                                <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">Dashboard Alat</h2>
+                                <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                    ${renderToolCard('Generator Hotspot', 'Buat user profile dan voucher hotspot.', 'fa-wifi', 'bg-indigo-500')}
+                                    ${renderToolCard('Script Mikrotik', 'Kumpulan script otomatisasi router.', 'fa-code', 'bg-pink-500')}
+                                    ${renderToolCard('Bot Telegram', 'Setup bot monitoring jaringan.', 'fa-robot', 'bg-blue-400')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    break;
+                
+                case 'Tentang':
+                    container.innerHTML = `
+                         <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center">
+                            <h2 class="text-2xl font-bold mb-4">Tentang Aplikasi</h2>
+                            <p class="text-gray-600 dark:text-gray-300">
+                                Aplikasi ini dikembangkan untuk memudahkan pengelolaan jaringan Mikrotik di lingkungan pemerintahan kecamatan.
+                                Membantu dalam pembuatan voucher hotspot tamu dan monitoring koneksi internet.
+                            </p>
+                            <p class="mt-4 text-sm text-gray-500">Versi 1.0.0 (Bahasa Indonesia)</p>
+                        </div>
+                    `;
+                    break;
+
+                case 'Kontak':
+                    container.innerHTML = `
+                        <div class="max-w-lg mx-auto bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
+                            <h2 class="text-2xl font-bold mb-6 text-center">Hubungi Kami</h2>
+                            <form>
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Nama</label>
+                                    <input type="text" class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Pesan</label>
+                                    <textarea class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600" rows="4"></textarea>
+                                </div>
+                                <button type="button" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700" onclick="alert('Pesan terkirim (Simulasi).')">
+                                    Kirim Pesan
+                                </button>
+                            </form>
+                        </div>
+                    `;
+                    break;
+
+                default:
+                    container.innerHTML = `<h2 class="text-center text-red-500 mt-10">404 - Halaman Tidak Ditemukan</h2>`;
+            }
+        };
+
+        const renderToolCard = (title, desc, icon, colorClass) => {
+            return `
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow">
+                    <div class="${colorClass} p-4 flex justify-center items-center">
+                        <i class="fas ${icon} fa-2x text-white"></i>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-bold text-lg mb-2">${title}</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">${desc}</p>
+                        <button class="w-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-white font-bold py-2 px-4 rounded text-sm transition-colors" onclick="alert('Fitur ${title} akan segera hadir!')">
+                            Buka Alat
+                        </button>
+                    </div>
+                </div>
+            `;
+        };
+
+        const renderAccessDenied = () => {
+            const container = document.getElementById('section-container');
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-20 text-center">
+                    <div class="bg-red-100 dark:bg-red-900 p-4 rounded-full mb-4">
+                        <i class="fas fa-lock fa-3x text-red-600 dark:text-red-300"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Akses Ditolak</h2>
+                    <p class="text-gray-600 dark:text-gray-300 max-w-md mx-auto">
+                        Anda harus masuk (login) terlebih dahulu untuk mengakses alat konfigurasi Mikrotik ini.
+                    </p>
+                    <button onclick="document.getElementById('login-overlay').classList.remove('hidden')" class="mt-6 bg-blue-600 text-white font-bold py-2 px-6 rounded hover:bg-blue-700">
+                        Login Sekarang
+                    </button>
+                </div>
+            `;
+        };
+
+        // --- Navigasi ---
+        const navigateTo = (sectionName) => {
+            currentSection = sectionName;
+            renderNav();
+            renderContent();
+            window.scrollTo(0, 0);
+        };
+
+        // --- Toggle Mobile Menu ---
+        const toggleMobileMenu = () => {
+            const sidebar = document.getElementById('mobile-sidebar');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+            }
+        };
+
+        // --- Login System ---
+        const handleLogin = (e) => {
+            e.preventDefault();
+            const usernameInput = document.getElementById('username').value;
+            const passwordInput = document.getElementById('password').value;
+            const errorMsg = document.getElementById('login-error');
+
+            if (!appConfig) {
+                errorMsg.textContent = "Gagal memuat konfigurasi user.";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            const user = appConfig.users.find(u => u.username === usernameInput && u.password === passwordInput);
+
+            if (user) {
+                isAuthenticated = true;
+                currentUser = user;
+                document.getElementById('login-overlay').classList.add('hidden');
+                document.getElementById('login-form').reset();
+                errorMsg.classList.add('hidden');
+                
+                updateLoginButtonState();
+                showMessage('Sukses', `Selamat datang, Pak ${user.username}!`, 'border-green-500 text-green-700');
+                
+                // Refresh halaman jika sedang di halaman terlarang
+                if (currentSection === 'Alat') renderContent();
+                
+                resetInactivityTimer();
+            } else {
+                errorMsg.textContent = "Username atau password salah.";
+                errorMsg.classList.remove('hidden');
+            }
+        };
+
+        const handleLogout = () => {
+            isAuthenticated = false;
+            currentUser = null;
+            updateLoginButtonState();
+            showMessage('Info', 'Anda telah keluar.', 'border-blue-500 text-blue-700');
+            navigateTo('Beranda');
+        };
+
+        const updateLoginButtonState = () => {
+            const btn = document.getElementById('login-button');
+            if (isAuthenticated) {
+                btn.textContent = 'Keluar';
+                btn.onclick = handleLogout;
+                btn.classList.replace('bg-blue-600', 'bg-red-600');
+                btn.classList.replace('hover:bg-blue-700', 'hover:bg-red-700');
+            } else {
+                btn.textContent = 'Masuk';
+                btn.onclick = () => document.getElementById('login-overlay').classList.remove('hidden');
+                btn.classList.replace('bg-red-600', 'bg-blue-600');
+                btn.classList.replace('hover:bg-red-700', 'hover:bg-blue-700');
+            }
+        };
+
+        // --- Utils: Message Box ---
+        const showMessage = (title, message, colorClasses) => {
+            const box = document.getElementById('message-box');
+            box.querySelector('.message-title').textContent = title;
+            box.querySelector('.message-content').textContent = message;
+            
+            // Reset classes basic
+            box.className = `fixed top-20 right-4 bg-white dark:bg-gray-800 border-l-4 p-4 rounded shadow-md z-40 ${colorClasses}`;
+            
+            box.classList.remove('hidden');
+            setTimeout(() => {
+                box.classList.add('hidden');
+            }, 3000);
+        };
+
+        // --- Inactivity Timer ---
+        const resetInactivityTimer = () => {
+            clearTimeout(inactivityTimer);
+            if (isAuthenticated) {
+                inactivityTimer = setTimeout(() => {
+                    handleLogout();
+                    showMessage('Sesi Habis', 'Anda otomatis logout karena tidak aktif.', 'border-yellow-500 text-yellow-700');
+                }, INACTIVITY_TIMEOUT_MINUTES * 60 * 1000);
+            }
+        };
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConfig();
+            renderNav();
+            renderContent();
+
+            // Mobile menu events
+            document.getElementById('mobile-menu-button').addEventListener('click', toggleMobileMenu);
+            document.getElementById('close-mobile-menu').addEventListener('click', toggleMobileMenu);
+
+            // Login modal events
+            document.getElementById('close-login-modal').addEventListener('click', () => {
+                document.getElementById('login-overlay').classList.add('hidden');
+            });
+            
+            // Login form submit
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            
+            // Initial button state
+            updateLoginButtonState();
+
+            // Footer links (contoh modal)
+            document.getElementById('privacy-link').addEventListener('click', (e) => {
+                e.preventDefault();
+                showFooterModal('Kebijakan Privasi', 'Aplikasi ini hanya menyimpan data sesi sementara di browser Anda (Local Storage) dan tidak mengirim data pribadi ke server eksternal tanpa izin.');
+            });
+
+            document.getElementById('terms-link').addEventListener('click', (e) => {
+                e.preventDefault();
+                showFooterModal('Syarat Layanan', 'Aplikasi ini digunakan untuk kepentingan internal manajemen jaringan.');
+            });
+
+            // Activity listeners for auto-logout
+            ['click', 'mousemove', 'keypress'].forEach(evt => {
+                document.addEventListener(evt, resetInactivityTimer);
+            });
+            
+            // Anti right click (Opsional, kadang mengganggu saat development)
+            document.addEventListener('contextmenu', event => {
+                 event.preventDefault();
+                 showMessage('Security', 'Klik kanan dinonaktifkan.', 'border-red-500 text-red-700');
+            });
+        });
+
+        const showFooterModal = (title, content) => {
+            document.getElementById('link-modal-title').textContent = title;
+            document.getElementById('link-modal-content').textContent = content;
+            document.getElementById('link-modal-overlay').classList.remove('hidden');
+        };
+
+    </script>
+</body>
+</html>
