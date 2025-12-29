@@ -1,77 +1,129 @@
 {
   "users": [
     {
-      "nama": "Administrator",
-      "username": "admin",
-      "password": "123",
-      "role": "admin",
-      "email": "admin.kecamatan@dumai.go.id",
-      "tanggal_kadaluarsa": ""
+      "nombre": "Admin (Root)",
+      "usuario": "viluis",
+      "contraseña": "viluis",
+      "rol": "root",
+      "correo_electronico": "admin@contoh.go.id",
+      "fecha_caducidad": ""
     },
     {
-      "nama": "Staf IT",
-      "username": "staf",
-      "password": "staf",
-      "role": "staf_teknis",
-      "email": "staf.it@dumai.go.id",
-      "tanggal_kadaluarsa": "2026-12-31"
+      "nombre": "Operator Jaringan",
+      "usuario": "ana",
+      "contraseña": "ana",
+      "rol": "acreditado",
+      "correo_electronico": "operator@contoh.go.id",
+      "fecha_caducidad": "2026-03-20"
     },
     {
-      "nama": "Tamu",
-      "username": "tamu",
-      "password": "tamu",
-      "role": "tamu",
-      "email": "tamu@dumai.go.id",
-      "tanggal_kadaluarsa": ""
+      "nombre": "Tamu",
+      "usuario": "carlos",
+      "contraseña": "carlos",
+      "rol": "invitado",
+      "correo_electronico": "tamu@contoh.go.id",
+      "fecha_caducidad": ""
     }
   ],
   "rolePermissions": {
-    "admin": [
+    "root": [
       "Beranda",
-      "Alat",
-      "Generator Kode",
-      "Script Telegram",
-      "Pengaturan",
-      "Laporan",
-      "Log Sistem"
+      "Load Balance",
+      "NTH",
+      "PCC",
+      "ECMP",
+      "Kalkulator PCC",
+      "Queue & PCQ",
+      "Simple Queue",
+      "Simple Queue (Shared)",
+      "Queue Tree (Shared)",
+      "PCQ Generator",
+      "PCQ Burst Calculator",
+      "Burst Limit Calculator",
+      "VPN Tools",
+      "VPN Game Generator",
+      "VPN Game Generator v2",
+      "VPN Tunnel All Traffic",
+      "Keamanan & Lainnya",
+      "Expired Isolate (PPPoE/Hotspot)",
+      "Port Knocking (ICMP)",
+      "Remote IP Public Static",
+      "WiFi (Wifid WMS)"
     ],
-    "staf_teknis": [
+    "acreditado": [
       "Beranda",
-      "Alat",
-      "Generator Kode",
-      "Script Telegram",
-      "Pengaturan"
+      "Load Balance",
+      "NTH",
+      "PCC",
+      "ECMP",
+      "Kalkulator PCC",
+      "Queue & PCQ",
+      "Simple Queue",
+      "Simple Queue (Shared)",
+      "Queue Tree (Shared)",
+      "PCQ Generator",
+      "PCQ Burst Calculator",
+      "Burst Limit Calculator",
+      "VPN Tools",
+      "VPN Tunnel All Traffic",
+      "Keamanan & Lainnya",
+      "Port Knocking (ICMP)"
     ],
-    "tamu": [
+    "invitado": [
       "Beranda",
-      "Pengaturan"
+      "Load Balance",
+      "Kalkulator PCC",
+      "Queue & PCQ",
+      "Burst Limit Calculator"
     ]
   },
   "navStructure": [
-    { 
-      "name": "Beranda", 
-      "id": "Beranda" 
-    },
-    { 
-      "name": "Alat", 
-      "id": "Alat",
+    { "name": "Beranda", "id": "home" },
+
+    {
+      "name": "Load Balance",
+      "id": "lb",
       "children": [
-        { "name": "Generator Kode", "id": "Generator Kode" },
-        { "name": "Script Telegram", "id": "Script Telegram" }
+        { "name": "NTH", "id": "nth" },
+        { "name": "PCC", "id": "pcc" },
+        { "name": "ECMP", "id": "ecmp" },
+        { "name": "Kalkulator PCC", "id": "pcc_calc" }
       ]
     },
-    { 
-      "name": "Pengaturan", 
-      "id": "Pengaturan" 
+
+    {
+      "name": "Queue & PCQ",
+      "id": "queue",
+      "children": [
+        { "name": "Simple Queue", "id": "simple_queue" },
+        { "name": "Simple Queue (Shared)", "id": "simple_queue_shared" },
+        { "name": "Queue Tree (Shared)", "id": "queue_tree" },
+        { "name": "PCQ Generator", "id": "pcq_gen" },
+        { "name": "PCQ Burst Calculator", "id": "pcq_burst" },
+        { "name": "Burst Limit Calculator", "id": "burst_calc" }
+      ]
     },
-    { 
-      "name": "Laporan", 
-      "id": "Laporan" 
+
+    {
+      "name": "VPN Tools",
+      "id": "vpn",
+      "children": [
+        { "name": "VPN Game Generator", "id": "vpn_game_1" },
+        { "name": "VPN Game Generator v2", "id": "vpn_game_2" },
+        { "name": "VPN Tunnel All Traffic", "id": "vpn_tunnel_all" }
+      ]
     },
-    { 
-      "name": "Log Sistem", 
-      "id": "Log Sistem" 
+
+    {
+      "name": "Keamanan & Lainnya",
+      "id": "misc",
+      "children": [
+        { "name": "Expired Isolate (PPPoE/Hotspot)", "id": "expired_isolate" },
+        { "name": "Port Knocking (ICMP)", "id": "port_knocking" },
+        { "name": "Remote IP Public Static", "id": "remote_ip" },
+        { "name": "WiFi (Wifid WMS)", "id": "wifid_wms" }
+      ]
     }
   ],
-  "publicSections": ["Beranda", "Pengaturan"]
+  "publicSections": ["Beranda"]
 }
