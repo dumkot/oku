@@ -1,129 +1,307 @@
-{
-  "users": [
-    {
-      "nombre": "Admin (Root)",
-      "usuario": "viluis",
-      "contraseña": "viluis",
-      "rol": "root",
-      "correo_electronico": "admin@contoh.go.id",
-      "fecha_caducidad": ""
-    },
-    {
-      "nombre": "Operator Jaringan",
-      "usuario": "ana",
-      "contraseña": "ana",
-      "rol": "acreditado",
-      "correo_electronico": "operator@contoh.go.id",
-      "fecha_caducidad": "2026-03-20"
-    },
-    {
-      "nombre": "Tamu",
-      "usuario": "carlos",
-      "contraseña": "carlos",
-      "rol": "invitado",
-      "correo_electronico": "tamu@contoh.go.id",
-      "fecha_caducidad": ""
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mikrotik Tools - Dumai Kota</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    iframe { width: 100%; height: calc(100vh - 64px - 48px); border: 0; background: white; }
+  </style>
+</head>
+
+<body class="bg-slate-100">
+  <!-- TOPBAR -->
+  <header class="h-16 bg-white border-b flex items-center justify-between px-4">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded bg-slate-900 text-white flex items-center justify-center font-bold">MT</div>
+      <div>
+        <div class="font-semibold leading-4">Mikrotik Tools</div>
+        <div class="text-xs text-slate-500 leading-4" id="subtitle">Dashboard gabungan tools</div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <span class="text-sm text-slate-600" id="userBadge">Tamu</span>
+
+      <button id="btnLogin" class="px-3 py-2 rounded bg-blue-600 text-white text-sm font-semibold"
+        onclick="openLogin(true)">
+        Masuk
+      </button>
+
+      <button id="btnLogout" class="px-3 py-2 rounded bg-slate-700 text-white text-sm font-semibold hidden"
+        onclick="logout()">
+        Keluar
+      </button>
+    </div>
+  </header>
+
+  <div class="flex">
+    <!-- SIDEBAR -->
+    <aside class="w-80 bg-white border-r h-[calc(100vh-64px)] overflow-auto p-3">
+      <div class="text-xs text-slate-500 mb-2">Menu (sesuai role)</div>
+      <div id="menu" class="space-y-1"></div>
+
+      <div class="mt-4 p-3 rounded bg-slate-50 border text-xs text-slate-600">
+        Tips: jika klik menu tidak membuka tool, cek mapping <code>toolFiles</code> dan pastikan file HTML-nya ada.
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="flex-1">
+      <!-- BAR JUDUL TOOL -->
+      <div class="h-12 bg-white border-b px-4 flex items-center justify-between">
+        <div class="font-semibold text-slate-800" id="currentTitle">Pilih tool di kiri</div>
+        <div class="flex items-center gap-2">
+          <button class="px-3 py-1.5 rounded bg-slate-100 text-sm"
+            onclick="closeTool()">
+            Tutup
+          </button>
+          <button class="px-3 py-1.5 rounded bg-slate-100 text-sm"
+            onclick="reloadTool()">
+            Reload
+          </button>
+        </div>
+      </div>
+
+      <iframe id="frame" src="about:blank"></iframe>
+    </main>
+  </div>
+
+  <!-- LOGIN MODAL -->
+  <div id="loginModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-xl shadow p-5">
+      <div class="text-lg font-bold mb-1">Masuk</div>
+      <div class="text-sm text-slate-500 mb-4">Gunakan user dari file <code>config.json</code></div>
+
+      <label class="text-sm font-semibold">Username</label>
+      <input id="inpUser" class="w-full border rounded px-3 py-2 mt-1 mb-3" placeholder="mis. viluis" />
+
+      <label class="text-sm font-semibold">Password</label>
+      <input id="inpPass" type="password" class="w-full border rounded px-3 py-2 mt-1 mb-4" placeholder="password" />
+
+      <div id="loginErr" class="text-sm text-red-600 mb-3 hidden"></div>
+
+      <div class="flex justify-end gap-2">
+        <button class="px-3 py-2 rounded bg-slate-100 text-sm font-semibold" onclick="openLogin(false)">Batal</button>
+        <button class="px-3 py-2 rounded bg-blue-600 text-white text-sm font-semibold" onclick="doLogin()">Masuk</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ============================================================
+  // 1) MAPPING: ID MENU -> FILE TOOL (sesuaikan jika Anda ubah nama file)
+  // File-file ini memang ada di repo dumkot/fok. [page:24]
+  // ============================================================
+  const toolFiles = {
+    // Load Balance
+    "nth": "nth.html",
+    "pcc": "pcc.html",
+    "ecmp": "ecmp.html",
+    "pcc_calc": "pcc-calculation.html",
+
+    // Queue/PCQ
+    "simple_queue": "simple-queue-generator.html",
+    "simple_queue_shared": "simple-queue-generator-shared.html",
+    "queue_tree": "queue-tree-generator-shared.html",
+    "pcq_gen": "mikrotik-pcq-generator.html",
+    "pcq_burst": "mikrotik-pcq-burst-rate-queue-size-generator.html",
+    "burst_calc": "mikrotik-burst-limit-calculator.html",
+
+    // VPN
+    "vpn_game_1": "vpn-game-generator.html",
+    "vpn_game_2": "vpn-game-generator2.html",
+    "vpn_tunnel_all": "vpn-tunnel-all-traffic-script-generator.html",
+
+    // Security / Misc
+    "expired_isolate": "mikrotik-expired-isolate-pppoe-hotspot.html",
+    "port_knocking": "port-knocking-icmp.html",
+    "remote_ip": "remote-ip-public-static.html",
+    "wifid_wms": "wifid-wms-seamless.html"
+  };
+
+  // ============================================================
+  // 2) STATE
+  // ============================================================
+  let config = null;
+  let session = { user: null };
+  let currentToolId = null;
+
+  // ============================================================
+  // 3) UTIL (support config field Spanish)
+  // ============================================================
+  function getUsername(u){ return u.usuario ?? u.username ?? ""; }
+  function getPassword(u){ return u.contraseña ?? u.password ?? ""; }
+  function getRole(u){ return u.rol ?? u.role ?? "tamu"; }
+  function getName(u){ return u.nombre ?? u.nama ?? getUsername(u) ?? "User"; }
+  function getExpiry(u){ return u.fecha_caducidad ?? u.tanggal_kadaluarsa ?? ""; }
+
+  function isExpired(user){
+    const exp = getExpiry(user);
+    if (!exp) return false;
+    const d = new Date(exp + "T23:59:59");
+    return Number.isFinite(d.getTime()) && d.getTime() < Date.now();
+  }
+
+  // ============================================================
+  // 4) LOAD CONFIG
+  // ============================================================
+  async function loadConfig(){
+    const res = await fetch("config.json", { cache: "no-store" });
+    if(!res.ok) throw new Error("config.json tidak bisa dibaca");
+    return await res.json();
+  }
+
+  // ============================================================
+  // 5) PERMISSION
+  // ============================================================
+  function canAccessByName(sectionName){
+    const pub = config.publicSections || [];
+    if (pub.includes(sectionName)) return true;
+    if (!session.user) return false;
+    const role = getRole(session.user);
+    const perms = config.rolePermissions?.[role] || [];
+    return perms.includes(sectionName);
+  }
+
+  // ============================================================
+  // 6) RENDER MENU
+  // ============================================================
+  function renderMenu(){
+    const menu = document.getElementById("menu");
+    menu.innerHTML = "";
+
+    (config.navStructure || []).forEach(item => {
+      menu.appendChild(renderNavItem(item, 0));
+    });
+  }
+
+  function renderNavItem(item, level){
+    const wrap = document.createElement("div");
+    const name = item.name;
+    const id = item.id;
+    const childrenArr = Array.isArray(item.children) ? item.children : [];
+    const hasChildren = childrenArr.length > 0;
+
+    const row = document.createElement("button");
+    row.className = "w-full text-left px-3 py-2 rounded hover:bg-slate-100 flex items-center justify-between";
+    row.style.marginLeft = Math.min(level * 10, 24) + "px";
+    row.innerHTML = `
+      <span class="text-sm font-medium">${name}</span>
+      <span class="text-xs text-slate-400">${hasChildren ? "▸" : ""}</span>
+    `;
+
+    const children = document.createElement("div");
+    children.className = "mt-1 space-y-1 hidden";
+
+    if (hasChildren){
+      row.onclick = () => children.classList.toggle("hidden");
+      childrenArr.forEach(ch => children.appendChild(renderNavItem(ch, level + 1)));
+      wrap.appendChild(row);
+      wrap.appendChild(children);
+      return wrap;
     }
-  ],
-  "rolePermissions": {
-    "root": [
-      "Beranda",
-      "Load Balance",
-      "NTH",
-      "PCC",
-      "ECMP",
-      "Kalkulator PCC",
-      "Queue & PCQ",
-      "Simple Queue",
-      "Simple Queue (Shared)",
-      "Queue Tree (Shared)",
-      "PCQ Generator",
-      "PCQ Burst Calculator",
-      "Burst Limit Calculator",
-      "VPN Tools",
-      "VPN Game Generator",
-      "VPN Game Generator v2",
-      "VPN Tunnel All Traffic",
-      "Keamanan & Lainnya",
-      "Expired Isolate (PPPoE/Hotspot)",
-      "Port Knocking (ICMP)",
-      "Remote IP Public Static",
-      "WiFi (Wifid WMS)"
-    ],
-    "acreditado": [
-      "Beranda",
-      "Load Balance",
-      "NTH",
-      "PCC",
-      "ECMP",
-      "Kalkulator PCC",
-      "Queue & PCQ",
-      "Simple Queue",
-      "Simple Queue (Shared)",
-      "Queue Tree (Shared)",
-      "PCQ Generator",
-      "PCQ Burst Calculator",
-      "Burst Limit Calculator",
-      "VPN Tools",
-      "VPN Tunnel All Traffic",
-      "Keamanan & Lainnya",
-      "Port Knocking (ICMP)"
-    ],
-    "invitado": [
-      "Beranda",
-      "Load Balance",
-      "Kalkulator PCC",
-      "Queue & PCQ",
-      "Burst Limit Calculator"
-    ]
-  },
-  "navStructure": [
-    { "name": "Beranda", "id": "home" },
 
-    {
-      "name": "Load Balance",
-      "id": "lb",
-      "children": [
-        { "name": "NTH", "id": "nth" },
-        { "name": "PCC", "id": "pcc" },
-        { "name": "ECMP", "id": "ecmp" },
-        { "name": "Kalkulator PCC", "id": "pcc_calc" }
-      ]
-    },
-
-    {
-      "name": "Queue & PCQ",
-      "id": "queue",
-      "children": [
-        { "name": "Simple Queue", "id": "simple_queue" },
-        { "name": "Simple Queue (Shared)", "id": "simple_queue_shared" },
-        { "name": "Queue Tree (Shared)", "id": "queue_tree" },
-        { "name": "PCQ Generator", "id": "pcq_gen" },
-        { "name": "PCQ Burst Calculator", "id": "pcq_burst" },
-        { "name": "Burst Limit Calculator", "id": "burst_calc" }
-      ]
-    },
-
-    {
-      "name": "VPN Tools",
-      "id": "vpn",
-      "children": [
-        { "name": "VPN Game Generator", "id": "vpn_game_1" },
-        { "name": "VPN Game Generator v2", "id": "vpn_game_2" },
-        { "name": "VPN Tunnel All Traffic", "id": "vpn_tunnel_all" }
-      ]
-    },
-
-    {
-      "name": "Keamanan & Lainnya",
-      "id": "misc",
-      "children": [
-        { "name": "Expired Isolate (PPPoE/Hotspot)", "id": "expired_isolate" },
-        { "name": "Port Knocking (ICMP)", "id": "port_knocking" },
-        { "name": "Remote IP Public Static", "id": "remote_ip" },
-        { "name": "WiFi (Wifid WMS)", "id": "wifid_wms" }
-      ]
+    // leaf
+    const allowed = canAccessByName(name);
+    if (!allowed){
+      row.disabled = true;
+      row.classList.add("opacity-50", "cursor-not-allowed");
+      row.onclick = () => alert("Akses ditolak. Silakan login / role Anda tidak punya izin.");
+    } else {
+      row.onclick = () => openTool(id, name);
     }
-  ],
-  "publicSections": ["Beranda"]
-}
+
+    wrap.appendChild(row);
+    return wrap;
+  }
+
+  // ============================================================
+  // 7) OPEN TOOL
+  // ============================================================
+  function openTool(toolId, toolTitle){
+    const file = toolFiles[toolId];
+    if(!file){
+      document.getElementById("currentTitle").innerText = toolTitle + " (mapping belum ada)";
+      document.getElementById("frame").src = "about:blank";
+      currentToolId = null;
+      return;
+    }
+    currentToolId = toolId;
+    document.getElementById("currentTitle").innerText = toolTitle;
+    document.getElementById("frame").src = file;
+  }
+
+  function closeTool(){
+    currentToolId = null;
+    document.getElementById("frame").src = "about:blank";
+    document.getElementById("currentTitle").innerText = "Pilih tool di kiri";
+  }
+
+  function reloadTool(){
+    if(!currentToolId) return;
+    const src = document.getElementById("frame").src;
+    document.getElementById("frame").src = src;
+  }
+
+  // ============================================================
+  // 8) LOGIN / LOGOUT
+  // ============================================================
+  function openLogin(show){
+    const modal = document.getElementById("loginModal");
+    modal.classList.toggle("hidden", !show);
+    modal.classList.toggle("flex", show);
+    document.getElementById("loginErr").classList.add("hidden");
+  }
+
+  function doLogin(){
+    const u = document.getElementById("inpUser").value.trim();
+    const p = document.getElementById("inpPass").value;
+
+    const err = document.getElementById("loginErr");
+    err.classList.add("hidden");
+
+    const users = config.users || [];
+    const found = users.find(x => getUsername(x) === u && getPassword(x) === p);
+
+    if(!found){
+      err.innerText = "Username atau password salah.";
+      err.classList.remove("hidden");
+      return;
+    }
+    if(isExpired(found)){
+      err.innerText = "Akun sudah kadaluarsa.";
+      err.classList.remove("hidden");
+      return;
+    }
+
+    session.user = found;
+    document.getElementById("userBadge").innerText = getName(found);
+    document.getElementById("btnLogin").classList.add("hidden");
+    document.getElementById("btnLogout").classList.remove("hidden");
+    openLogin(false);
+    renderMenu();
+  }
+
+  function logout(){
+    session.user = null;
+    document.getElementById("userBadge").innerText = "Tamu";
+    document.getElementById("btnLogin").classList.remove("hidden");
+    document.getElementById("btnLogout").classList.add("hidden");
+    renderMenu();
+    closeTool();
+  }
+
+  // ============================================================
+  // INIT
+  // ============================================================
+  (async function init(){
+    config = await loadConfig();
+    document.getElementById("subtitle").innerText = "Tools diambil dari file HTML repo ini";
+    renderMenu();
+  })();
+</script>
+
+</body>
+</html>
