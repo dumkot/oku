@@ -1,396 +1,129 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mikrotik Tools - Camat Edition</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; -webkit-user-select: none; user-select: none; }
-        .tool-card { transition: transform 0.2s; }
-        .tool-card:hover { transform: translateY(-5px); }
-        /* Agar textarea hasil script terlihat seperti terminal */
-        .terminal-output {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: #1e1e1e;
-            color: #00ff00;
-        }
-    </style>
-</head>
-<body class="bg-gray-100 text-gray-800 h-screen flex flex-col overflow-hidden">
+{
+  "users": [
+    {
+      "nombre": "Admin (Root)",
+      "usuario": "viluis",
+      "contraseña": "viluis",
+      "rol": "root",
+      "correo_electronico": "admin@contoh.go.id",
+      "fecha_caducidad": ""
+    },
+    {
+      "nombre": "Operator Jaringan",
+      "usuario": "ana",
+      "contraseña": "ana",
+      "rol": "acreditado",
+      "correo_electronico": "operator@contoh.go.id",
+      "fecha_caducidad": "2026-03-20"
+    },
+    {
+      "nombre": "Tamu",
+      "usuario": "carlos",
+      "contraseña": "carlos",
+      "rol": "invitado",
+      "correo_electronico": "tamu@contoh.go.id",
+      "fecha_caducidad": ""
+    }
+  ],
+  "rolePermissions": {
+    "root": [
+      "Beranda",
+      "Load Balance",
+      "NTH",
+      "PCC",
+      "ECMP",
+      "Kalkulator PCC",
+      "Queue & PCQ",
+      "Simple Queue",
+      "Simple Queue (Shared)",
+      "Queue Tree (Shared)",
+      "PCQ Generator",
+      "PCQ Burst Calculator",
+      "Burst Limit Calculator",
+      "VPN Tools",
+      "VPN Game Generator",
+      "VPN Game Generator v2",
+      "VPN Tunnel All Traffic",
+      "Keamanan & Lainnya",
+      "Expired Isolate (PPPoE/Hotspot)",
+      "Port Knocking (ICMP)",
+      "Remote IP Public Static",
+      "WiFi (Wifid WMS)"
+    ],
+    "acreditado": [
+      "Beranda",
+      "Load Balance",
+      "NTH",
+      "PCC",
+      "ECMP",
+      "Kalkulator PCC",
+      "Queue & PCQ",
+      "Simple Queue",
+      "Simple Queue (Shared)",
+      "Queue Tree (Shared)",
+      "PCQ Generator",
+      "PCQ Burst Calculator",
+      "Burst Limit Calculator",
+      "VPN Tools",
+      "VPN Tunnel All Traffic",
+      "Keamanan & Lainnya",
+      "Port Knocking (ICMP)"
+    ],
+    "invitado": [
+      "Beranda",
+      "Load Balance",
+      "Kalkulator PCC",
+      "Queue & PCQ",
+      "Burst Limit Calculator"
+    ]
+  },
+  "navStructure": [
+    { "name": "Beranda", "id": "home" },
 
-    <!-- Navbar -->
-    <header class="bg-blue-800 text-white shadow-md p-4 flex justify-between items-center z-20">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-800 font-bold text-xl">
-                MT
-            </div>
-            <div>
-                <h1 class="text-xl font-bold tracking-wide">MIKROTIK TOOLS</h1>
-                <p class="text-xs text-blue-200">Kecamatan Dumai Kota</p>
-            </div>
-        </div>
-        <div class="flex items-center space-x-4">
-            <span id="user-display" class="hidden md:inline text-sm font-semibold">Tamu</span>
-            <button id="auth-btn" onclick="toggleAuth()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded text-sm font-bold transition">
-                Masuk
-            </button>
-        </div>
-    </header>
+    {
+      "name": "Load Balance",
+      "id": "lb",
+      "children": [
+        { "name": "NTH", "id": "nth" },
+        { "name": "PCC", "id": "pcc" },
+        { "name": "ECMP", "id": "ecmp" },
+        { "name": "Kalkulator PCC", "id": "pcc_calc" }
+      ]
+    },
 
-    <div class="flex flex-1 overflow-hidden">
-        <!-- Sidebar -->
-        <aside class="w-64 bg-white shadow-lg hidden md:flex flex-col z-10">
-            <nav class="flex-1 py-6 px-3 space-y-2">
-                <a href="#" onclick="showSection('home')" class="nav-item block px-4 py-3 rounded-lg hover:bg-blue-50 text-gray-700 font-medium border-l-4 border-transparent hover:border-blue-600 transition">
-                    <i class="fas fa-home w-6"></i> Beranda
-                </a>
-                <a href="#" onclick="showSection('tools')" class="nav-item block px-4 py-3 rounded-lg hover:bg-blue-50 text-gray-700 font-medium border-l-4 border-transparent hover:border-blue-600 transition">
-                    <i class="fas fa-toolbox w-6"></i> Alat Jaringan
-                </a>
-                <a href="#" onclick="showSection('scripts')" class="nav-item block px-4 py-3 rounded-lg hover:bg-blue-50 text-gray-700 font-medium border-l-4 border-transparent hover:border-blue-600 transition">
-                    <i class="fas fa-code w-6"></i> Koleksi Script
-                </a>
-                <a href="#" onclick="showSection('about')" class="nav-item block px-4 py-3 rounded-lg hover:bg-blue-50 text-gray-700 font-medium border-l-4 border-transparent hover:border-blue-600 transition">
-                    <i class="fas fa-info-circle w-6"></i> Tentang
-                </a>
-            </nav>
-            <div class="p-4 border-t text-xs text-center text-gray-400">
-                &copy; 2025 IT Kecamatan
-            </div>
-        </aside>
+    {
+      "name": "Queue & PCQ",
+      "id": "queue",
+      "children": [
+        { "name": "Simple Queue", "id": "simple_queue" },
+        { "name": "Simple Queue (Shared)", "id": "simple_queue_shared" },
+        { "name": "Queue Tree (Shared)", "id": "queue_tree" },
+        { "name": "PCQ Generator", "id": "pcq_gen" },
+        { "name": "PCQ Burst Calculator", "id": "pcq_burst" },
+        { "name": "Burst Limit Calculator", "id": "burst_calc" }
+      ]
+    },
 
-        <!-- Main Content -->
-        <main class="flex-1 overflow-y-auto p-6 relative">
-            
-            <!-- Login Modal Overlay -->
-            <div id="login-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-                <div class="bg-white rounded-lg p-8 w-96 shadow-2xl">
-                    <h2 class="text-2xl font-bold mb-6 text-center text-blue-800">Login Admin</h2>
-                    <input type="text" id="username" placeholder="Username (admin)" class="w-full mb-4 p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <input type="password" id="password" placeholder="Password (123)" class="w-full mb-6 p-3 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <div class="flex justify-between">
-                        <button onclick="document.getElementById('login-modal').classList.add('hidden')" class="text-gray-500 hover:text-gray-700">Batal</button>
-                        <button onclick="doLogin()" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-bold">Masuk</button>
-                    </div>
-                </div>
-            </div>
+    {
+      "name": "VPN Tools",
+      "id": "vpn",
+      "children": [
+        { "name": "VPN Game Generator", "id": "vpn_game_1" },
+        { "name": "VPN Game Generator v2", "id": "vpn_game_2" },
+        { "name": "VPN Tunnel All Traffic", "id": "vpn_tunnel_all" }
+      ]
+    },
 
-            <!-- Content: Home -->
-            <div id="section-home" class="section-content space-y-6">
-                <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-8 text-white shadow-xl">
-                    <h2 class="text-3xl font-bold mb-2">Selamat Datang, Pak Camat!</h2>
-                    <p class="opacity-90">Aplikasi bantu untuk manajemen script Mikrotik kantor Kecamatan.</p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-green-500 cursor-pointer hover:bg-gray-50" onclick="showSection('tools'); openTool('hotspot')">
-                        <div class="text-green-500 mb-3"><i class="fas fa-users fa-2x"></i></div>
-                        <h3 class="font-bold text-lg">Buat Voucher Hotspot</h3>
-                        <p class="text-sm text-gray-500 mt-2">Generate 50+ user voucher otomatis sekali klik.</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-blue-500 cursor-pointer hover:bg-gray-50" onclick="showSection('tools'); openTool('telegram')">
-                        <div class="text-blue-500 mb-3"><i class="fab fa-telegram fa-2x"></i></div>
-                        <h3 class="font-bold text-lg">Bot Telegram</h3>
-                        <p class="text-sm text-gray-500 mt-2">Buat script notifikasi router ke WA/Telegram.</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-xl shadow-md border-t-4 border-purple-500 cursor-pointer hover:bg-gray-50" onclick="showSection('scripts')">
-                        <div class="text-purple-500 mb-3"><i class="fas fa-shield-alt fa-2x"></i></div>
-                        <h3 class="font-bold text-lg">Anti-Lag & Blokir</h3>
-                        <p class="text-sm text-gray-500 mt-2">Kumpulan script firewall siap pakai.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Content: Tools (Main Container) -->
-            <div id="section-tools" class="section-content hidden">
-                <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Alat Generator</h2>
-                
-                <!-- Tab Buttons -->
-                <div class="flex space-x-2 mb-6">
-                    <button onclick="openTool('hotspot')" class="tab-btn px-4 py-2 bg-gray-200 rounded-lg hover:bg-blue-100 focus:bg-blue-600 focus:text-white transition">Generator Voucher</button>
-                    <button onclick="openTool('telegram')" class="tab-btn px-4 py-2 bg-gray-200 rounded-lg hover:bg-blue-100 focus:bg-blue-600 focus:text-white transition">Setup Telegram</button>
-                    <button onclick="openTool('queue')" class="tab-btn px-4 py-2 bg-gray-200 rounded-lg hover:bg-blue-100 focus:bg-blue-600 focus:text-white transition">Simple Queue</button>
-                </div>
-
-                <!-- Tool: Hotspot Generator -->
-                <div id="tool-hotspot" class="tool-view hidden bg-white p-6 rounded-xl shadow-md">
-                    <h3 class="font-bold text-lg mb-4 text-green-600"><i class="fas fa-wifi mr-2"></i>Generator User Hotspot Massal</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-sm font-bold mb-1">Jumlah User</label>
-                            <input type="number" id="hs-qty" value="10" class="w-full p-2 border rounded">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold mb-1">Prefix Nama (Cth: Tamu-)</label>
-                            <input type="text" id="hs-prefix" value="Tamu-" class="w-full p-2 border rounded">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold mb-1">Profile Hotspot</label>
-                            <input type="text" id="hs-profile" value="default" class="w-full p-2 border rounded">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold mb-1">Panjang Password</label>
-                            <select id="hs-pass-len" class="w-full p-2 border rounded">
-                                <option value="3">3 Karakter</option>
-                                <option value="4" selected>4 Karakter</option>
-                                <option value="6">6 Karakter</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button onclick="generateHotspotUsers()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 font-bold mb-4 w-full md:w-auto">
-                        <i class="fas fa-cogs mr-2"></i> Generate Script
-                    </button>
-                    
-                    <label class="block text-sm font-bold mb-1">Hasil Script (Copy ke Terminal Mikrotik)</label>
-                    <textarea id="hs-output" rows="8" class="terminal-output w-full p-3 rounded text-sm" readonly></textarea>
-                    <button onclick="copyToClipboard('hs-output')" class="mt-2 text-sm text-blue-600 hover:underline">Salin Script</button>
-                </div>
-
-                <!-- Tool: Telegram Bot -->
-                <div id="tool-telegram" class="tool-view hidden bg-white p-6 rounded-xl shadow-md">
-                    <h3 class="font-bold text-lg mb-4 text-blue-600"><i class="fab fa-telegram mr-2"></i>Generator Script Notifikasi Telegram</h3>
-                    <div class="alert bg-blue-50 text-blue-800 p-3 rounded mb-4 text-sm">
-                        <i class="fas fa-info-circle mr-1"></i> Pastikan Mikrotik sudah terkoneksi internet & DNS sudah disetting.
-                    </div>
-                    <div class="mb-3">
-                        <label class="block text-sm font-bold mb-1">Bot Token (dari BotFather)</label>
-                        <input type="text" id="tg-token" placeholder="123456:ABC-Def..." class="w-full p-2 border rounded font-mono">
-                    </div>
-                    <div class="mb-3">
-                        <label class="block text-sm font-bold mb-1">Chat ID</label>
-                        <input type="text" id="tg-chatid" placeholder="-987654321" class="w-full p-2 border rounded font-mono">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-bold mb-1">Pesan Tes</label>
-                        <input type="text" id="tg-msg" value="Mikrotik Kecamatan Dumai Kota: Internet OK" class="w-full p-2 border rounded">
-                    </div>
-                    <button onclick="generateTelegramScript()" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-bold mb-4">
-                        Buat Script Fetch
-                    </button>
-                    <textarea id="tg-output" rows="4" class="terminal-output w-full p-3 rounded text-sm" readonly></textarea>
-                </div>
-
-                 <!-- Tool: Simple Queue -->
-                 <div id="tool-queue" class="tool-view hidden bg-white p-6 rounded-xl shadow-md">
-                    <h3 class="font-bold text-lg mb-4 text-purple-600"><i class="fas fa-tachometer-alt mr-2"></i>Generator Simple Queue</h3>
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-sm font-bold mb-1">Nama Target</label>
-                            <input type="text" id="sq-name" value="Laptop-Camat" class="w-full p-2 border rounded">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold mb-1">IP Target</label>
-                            <input type="text" id="sq-ip" value="192.168.1.10" class="w-full p-2 border rounded">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold mb-1">Max Upload (Cth: 2M)</label>
-                            <input type="text" id="sq-up" value="2M" class="w-full p-2 border rounded">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold mb-1">Max Download (Cth: 5M)</label>
-                            <input type="text" id="sq-down" value="5M" class="w-full p-2 border rounded">
-                        </div>
-                    </div>
-                    <button onclick="generateQueue()" class="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700 font-bold mb-4">
-                        Buat Script Queue
-                    </button>
-                    <textarea id="sq-output" rows="3" class="terminal-output w-full p-3 rounded text-sm" readonly></textarea>
-                </div>
-            </div>
-
-            <!-- Content: Scripts Library -->
-            <div id="section-scripts" class="section-content hidden">
-                 <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Koleksi Script Berguna</h2>
-                 <div class="bg-white p-6 rounded-xl shadow-md">
-                     <label class="block text-sm font-bold mb-2">Pilih Kebutuhan:</label>
-                     <select id="script-selector" onchange="loadScriptTemplate()" class="w-full p-3 border rounded mb-4">
-                         <option value="">-- Pilih Script --</option>
-                         <option value="dns">1. Setting DNS Google & Cloudflare</option>
-                         <option value="time">2. Setting NTP (Waktu Indonesia Barat)</option>
-                         <option value="backup">3. Script Auto Backup & Email</option>
-                         <option value="block_yt">4. Blokir YouTube (Layer 7)</option>
-                     </select>
-                     
-                     <div id="script-display-area" class="hidden">
-                         <h4 id="script-title" class="font-bold text-md mb-2">Preview Code:</h4>
-                         <textarea id="lib-output" rows="10" class="terminal-output w-full p-3 rounded text-sm mb-2" readonly></textarea>
-                         <button onclick="copyToClipboard('lib-output')" class="bg-gray-700 text-white px-4 py-2 rounded text-sm hover:bg-gray-800">
-                             <i class="fas fa-copy mr-1"></i> Salin Semua
-                         </button>
-                     </div>
-                 </div>
-            </div>
-            
-            <!-- Content: About -->
-            <div id="section-about" class="section-content hidden text-center pt-10">
-                <img src="https://placehold.co/100x100/1e40af/FFFFFF?text=MT" class="mx-auto rounded-full mb-4 shadow-lg">
-                <h2 class="text-2xl font-bold text-gray-800">Mikrotik Tools v2.0</h2>
-                <p class="text-gray-500 mb-6">Dikembangkan Khusus untuk Kebutuhan Operasional Kecamatan.</p>
-                <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow text-left">
-                    <p class="mb-2"><strong>Dibuat Oleh:</strong> Tim IT & Camat Dumai Kota</p>
-                    <p class="mb-2"><strong>Teknologi:</strong> HTML5, Tailwind CSS, JS (Tanpa Backend)</p>
-                    <p class="mb-2"><strong>Fungsi:</strong> Menghasilkan script CLI Mikrotik RouterOS secara otomatis tanpa perlu mengetik manual.</p>
-                </div>
-            </div>
-
-        </main>
-    </div>
-
-    <script>
-        // State
-        let isLoggedIn = false;
-        
-        // --- Navigation Logic ---
-        function showSection(id) {
-            // Hide all sections
-            document.querySelectorAll('.section-content').forEach(el => el.classList.add('hidden'));
-            // Show target
-            document.getElementById('section-' + id).classList.remove('hidden');
-        }
-
-        function openTool(toolId) {
-            if (!isLoggedIn) {
-                alert("Mohon Masuk (Login) terlebih dahulu untuk menggunakan alat ini.");
-                toggleAuth();
-                return;
-            }
-            // Hide all tools
-            document.querySelectorAll('.tool-view').forEach(el => el.classList.add('hidden'));
-            // Show target
-            document.getElementById('tool-' + toolId).classList.remove('hidden');
-        }
-
-        // --- Auth Logic (Simple Simulation) ---
-        function toggleAuth() {
-            if (isLoggedIn) {
-                // Logout
-                isLoggedIn = false;
-                document.getElementById('user-display').innerText = "Tamu";
-                document.getElementById('auth-btn').innerText = "Masuk";
-                document.getElementById('auth-btn').classList.replace('bg-gray-500', 'bg-red-500');
-                showSection('home');
-                alert("Anda telah keluar.");
-            } else {
-                // Show Login Modal
-                document.getElementById('login-modal').classList.remove('hidden');
-            }
-        }
-
-        function doLogin() {
-            const u = document.getElementById('username').value;
-            const p = document.getElementById('password').value;
-
-            // Simple hardcoded check
-            if (u === 'admin' && p === '123') {
-                isLoggedIn = true;
-                document.getElementById('login-modal').classList.add('hidden');
-                document.getElementById('user-display').innerText = "Administrator";
-                const btn = document.getElementById('auth-btn');
-                btn.innerText = "Keluar";
-                btn.classList.replace('bg-red-500', 'bg-gray-500');
-                
-                // Clear inputs
-                document.getElementById('username').value = '';
-                document.getElementById('password').value = '';
-                
-                alert("Login Berhasil! Menu Generator kini aktif.");
-            } else {
-                alert("Username atau Password salah! (Coba: admin / 123)");
-            }
-        }
-
-        // --- Generator Functions (THE REAL LOGIC) ---
-
-        // 1. Hotspot Generator
-        function generateHotspotUsers() {
-            const qty = parseInt(document.getElementById('hs-qty').value);
-            const prefix = document.getElementById('hs-prefix').value;
-            const profile = document.getElementById('hs-profile').value;
-            const passLen = parseInt(document.getElementById('hs-pass-len').value);
-            
-            let script = `/ip hotspot user\n`;
-            
-            for (let i = 1; i <= qty; i++) {
-                // Generate random password
-                const chars = "abcdefghjkmnpqrstuvwxyz23456789";
-                let pass = "";
-                for (let j = 0; j < passLen; j++) {
-                    pass += chars.charAt(Math.floor(Math.random() * chars.length));
-                }
-                
-                // Pad number with 0 (e.g., 01, 02)
-                const num = i.toString().padStart(2, '0');
-                const username = `${prefix}${num}`;
-                
-                script += `add name="${username}" password="${pass}" profile="${profile}" comment="GenByApp"\n`;
-            }
-            
-            document.getElementById('hs-output').value = script;
-        }
-
-        // 2. Telegram Script
-        function generateTelegramScript() {
-            const token = document.getElementById('tg-token').value;
-            const chatid = document.getElementById('tg-chatid').value;
-            const msg = document.getElementById('tg-msg').value;
-
-            if(!token || !chatid) {
-                alert("Token dan Chat ID wajib diisi!");
-                return;
-            }
-
-            // URL Encode message space
-            const encodedMsg = msg.replace(/ /g, '%20');
-            
-            const script = `/tool fetch url="https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatid}&text=${encodedMsg}" keep-result=no`;
-            
-            document.getElementById('tg-output').value = script;
-        }
-
-        // 3. Simple Queue
-        function generateQueue() {
-            const name = document.getElementById('sq-name').value;
-            const ip = document.getElementById('sq-ip').value;
-            const up = document.getElementById('sq-up').value;
-            const down = document.getElementById('sq-down').value;
-
-            const script = `/queue simple add name="${name}" target="${ip}" max-limit="${up}/${down}" comment="Dibuat dari Web App"`;
-            document.getElementById('sq-output').value = script;
-        }
-
-        // 4. Script Library
-        const scriptLibrary = {
-            'dns': `/ip dns set servers=8.8.8.8,1.1.1.1 allow-remote-requests=yes\n/ip dns static add name=router.lan address=192.168.1.1`,
-            'time': `/system clock set time-zone-name=Asia/Jakarta\n/system ntp client set enabled=yes primary-ntp=202.65.114.202 secondary-ntp=114.111.144.114`,
-            'backup': `/system scheduler add name="AutoBackup" start-time=02:00:00 interval=1d on-event={\n  /system backup save name=("DailyBackup-" . [:pick [/system clock get date] 7 11] . [:pick [/system clock get date] 0 3] . [:pick [/system clock get date] 4 6]);\n}`,
-            'block_yt': `/ip firewall layer7-protocol add name="Youtube" regexp="^.+(youtube.com|youtu.be|googlevideo.com).*$"\n/ip firewall filter add chain=forward layer7-protocol=Youtube action=drop comment="Blokir Youtube"`
-        };
-
-        function loadScriptTemplate() {
-            const key = document.getElementById('script-selector').value;
-            const display = document.getElementById('script-display-area');
-            const output = document.getElementById('lib-output');
-
-            if (key && scriptLibrary[key]) {
-                output.value = scriptLibrary[key];
-                display.classList.remove('hidden');
-            } else {
-                display.classList.add('hidden');
-            }
-        }
-
-        // Utility
-        function copyToClipboard(elementId) {
-            const el = document.getElementById(elementId);
-            el.select();
-            document.execCommand('copy');
-            alert("Script berhasil disalin! Silakan paste di Terminal Winbox.");
-        }
-
-        // Init
-        showSection('home');
-    </script>
-</body>
-</html>
+    {
+      "name": "Keamanan & Lainnya",
+      "id": "misc",
+      "children": [
+        { "name": "Expired Isolate (PPPoE/Hotspot)", "id": "expired_isolate" },
+        { "name": "Port Knocking (ICMP)", "id": "port_knocking" },
+        { "name": "Remote IP Public Static", "id": "remote_ip" },
+        { "name": "WiFi (Wifid WMS)", "id": "wifid_wms" }
+      ]
+    }
+  ],
+  "publicSections": ["Beranda"]
+}
