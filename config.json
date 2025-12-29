@@ -1,0 +1,77 @@
+{
+  "users": [
+    {
+      "nama": "Administrator",
+      "username": "admin",
+      "password": "123",
+      "role": "admin",
+      "email": "admin.kecamatan@dumai.go.id",
+      "tanggal_kadaluarsa": ""
+    },
+    {
+      "nama": "Staf IT",
+      "username": "staf",
+      "password": "staf",
+      "role": "staf_teknis",
+      "email": "staf.it@dumai.go.id",
+      "tanggal_kadaluarsa": "2026-12-31"
+    },
+    {
+      "nama": "Tamu",
+      "username": "tamu",
+      "password": "tamu",
+      "role": "tamu",
+      "email": "tamu@dumai.go.id",
+      "tanggal_kadaluarsa": ""
+    }
+  ],
+  "rolePermissions": {
+    "admin": [
+      "Beranda",
+      "Alat",
+      "Generator Kode",
+      "Script Telegram",
+      "Pengaturan",
+      "Laporan",
+      "Log Sistem"
+    ],
+    "staf_teknis": [
+      "Beranda",
+      "Alat",
+      "Generator Kode",
+      "Script Telegram",
+      "Pengaturan"
+    ],
+    "tamu": [
+      "Beranda",
+      "Pengaturan"
+    ]
+  },
+  "navStructure": [
+    { 
+      "name": "Beranda", 
+      "id": "Beranda" 
+    },
+    { 
+      "name": "Alat", 
+      "id": "Alat",
+      "children": [
+        { "name": "Generator Kode", "id": "Generator Kode" },
+        { "name": "Script Telegram", "id": "Script Telegram" }
+      ]
+    },
+    { 
+      "name": "Pengaturan", 
+      "id": "Pengaturan" 
+    },
+    { 
+      "name": "Laporan", 
+      "id": "Laporan" 
+    },
+    { 
+      "name": "Log Sistem", 
+      "id": "Log Sistem" 
+    }
+  ],
+  "publicSections": ["Beranda", "Pengaturan"]
+}
